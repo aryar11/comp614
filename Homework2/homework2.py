@@ -1,6 +1,9 @@
 """
 COMP 614
 Homework 2: Statistics
+
+Arya Rahmanian
+Fall 2024
 """
 
 import math
