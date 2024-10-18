@@ -5,7 +5,7 @@ Homework 3: Stock Prediction
 
 import comp614_module3 as stocks
 import random
-
+from collections import defaultdict
 
 def markov_chain(data, order):
     """
@@ -17,7 +17,25 @@ def markov_chain(data, order):
 
     returns: a dictionary that represents the Markov chain
     """
-    return {}
+    if order < 1:
+        raise ValueError("Order of the Markov chain must be at least 1.")
+    
+    chain = defaultdict(lambda: defaultdict(int))
+    
+    for idx in range(len(data) - order):
+        # get the current state
+        current_state = tuple(data[idx:idx+order])
+        next_bin = data[idx+order]
+        
+        chain[current_state][next_bin] += 1
+    
+    # normalize transitions for probabilities
+    for _, transitions in chain.items():
+        total_transitions = sum(transitions.values())
+        for next_state in transitions:
+            transitions[next_state] /= total_transitions
+    
+    return dict(chain)
 
 
 def predict(model, last, num):
@@ -32,8 +50,33 @@ def predict(model, last, num):
 
     returns: a list of integers that are the next num states
     """
-    return []
+    predictions = []
+    current_state = tuple(last)
 
+    for _ in range(num):
+        if current_state in model:
+            next_states = list(model[current_state].keys())
+            probabilities = list(model[current_state].values())
+            
+            cumulative_probabilities = []
+            cumulative_sum = 0
+            for prob in probabilities:
+                cumulative_sum += prob
+                cumulative_probabilities.append(cumulative_sum)
+            
+            rand_value = random.random()
+            for idx, cumulative_prob in enumerate(cumulative_probabilities):
+                if rand_value <= cumulative_prob:
+                    next_value = next_states[idx]
+                    break
+        else:
+            # randomly choose between 0 and 3 if state not in model
+            next_value = random.randint(0, 3)
+
+        predictions.append(next_value)
+        current_state = tuple(list(current_state[1:]) + [next_value])
+    
+    return predictions
 
 def mse(result, expected):
     """
@@ -46,7 +89,12 @@ def mse(result, expected):
 
     returns: a float that is the mean squared error between the two data sets
     """
-    return 0.0
+    error = 0
+    for idx in range(len(result)):
+        error += (expected[idx] - result[idx])**2   
+        
+    mse_value = error / len(result)
+    return float(mse_value)
 
 
 def run_experiment(train, order, test, future, actual, trials):
@@ -68,7 +116,19 @@ def run_experiment(train, order, test, future, actual, trials):
 
     returns: a float that is the mean squared error over the number of trials
     """
-    return 0.0
+    model = markov_chain(train, order)
+    
+    total_mse = 0.0
+    for _ in range(trials):
+        predictions = predict(model, test, future)
+        
+        error = mse(predictions, actual)
+        
+        total_mse += error
+    
+    average_mse = total_mse / trials
+    
+    return average_mse
 
 
 def run():
@@ -117,4 +177,4 @@ def run():
         
 # You may want to keep this call commented out while you're writing & testing
 # your code. Uncomment it when you're ready to run the experiments.
-# run()
+run()
