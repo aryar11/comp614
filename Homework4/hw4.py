@@ -2,7 +2,6 @@
 COMP 614
 Homework 4: Graphs
 """
-
 from collections import deque
 import comp614_module4
 
@@ -28,14 +27,14 @@ def file_to_graph(filename):
     has no outbound edges.
     """
     graph = comp614_module4.DiGraph()
-    currNode = None
-    with open(filename, 'r') as f:
-        for line in f:
+    curr_node = None
+    with open(filename, 'r') as file:
+        for line in file:
             if line.startswith('\t'):
-                graph.add_edge(currNode, line.strip())
+                graph.add_edge(curr_node, line.strip())
             else:
-                currNode = line.strip()
-                graph.add_node(currNode)
+                curr_node = line.strip()
+                graph.add_node(curr_node)
     return graph
 
 class Queue:
@@ -47,38 +46,38 @@ class Queue:
         """
         Constructs a new empty queue.
         """
-        self.q = deque()
+        self.queue = deque()
 
     def __len__(self):
         """
         Returns an integer representing the number of items in the queue.
         """
-        return len(self.q)
+        return len(self.queue)
 
     def __str__(self):
         """
         Returns a string representation of the queue.
         """
-        return "Queue: " + " -> ".join(map(str, self.q))
+        return "Queue: " + " -> ".join(map(str, self.queue))
 
     def push(self, item):
         """
         Adds the given item to the queue.
         """
-        self.q.append(item)
+        self.queue.append(item)
 
     def pop(self):
         """
         Removes and returns the least recently added item from the queue.
         Assumes that there is at least one element in the queue.
         """
-        return self.q.popleft() if self.q else None
+        return self.queue.popleft() if self.queue else None
 
     def clear(self):
         """
         Removes all items from the queue.
         """
-        self.q.clear()
+        self.queue.clear()
 
 
 def bfs(graph, start_node):
@@ -88,7 +87,24 @@ def bfs(graph, start_node):
     node to its distance from the start node and a dictionary mapping each
     node to its parent in the search.
     """
-    return {}, {}
+    queue = Queue()
+    dist = {}
+    parent = {}
+
+    for node in graph.nodes():
+        dist[node] = float("inf")
+        parent[node] = None
+    dist[start_node] = 0
+    queue.push(start_node)
+    while len(queue) != 0:
+        curr = queue.pop()
+        for neighbor in graph.get_neighbors(curr):
+            if dist[neighbor] == float("inf"):  
+                dist[neighbor] = dist[curr] + 1 
+                parent[neighbor] = curr 
+                queue.push(neighbor)  
+
+    return dist, parent
 
 
 def connected_components(graph):
