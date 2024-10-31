@@ -116,32 +116,33 @@ def connected_components(graph):
     visited = set()  # Keeps track of visited nodes
     components = set()  # Stores each component as a frozenset
 
-    # Helper function to perform BFS and gather nodes in the current component
-    def bfs_component(start_node):
+    def get_weakly_connected_component(start_node):
+        # Use BFS on the simulated undirected graph
         queue = Queue()
         queue.push(start_node)
-        component = set()  # To store nodes in the current component
+        component = set([start_node])
         visited.add(start_node)
-        
+
         while len(queue) > 0:
             node = queue.pop()
-            component.add(node)
-            
-            # Get all neighbors in both directions for weak connectivity
-            neigh = graph.get_neighbors(node)
-            nodes = {n for n in graph.nodes() if node in graph.get_neighbors(n)}
-            neighbors = neigh | nodes
-            for neighbor in neighbors:
+
+            # Combine outbound and inbound neighbors to simulate undirected behavior
+            neighbors = graph.get_neighbors(node)
+            reverse_neighbors = {n for n in graph.nodes() if node in graph.get_neighbors(n)}
+            all_neighbors = neighbors | reverse_neighbors
+
+            for neighbor in all_neighbors:
                 if neighbor not in visited:
                     visited.add(neighbor)
+                    component.add(neighbor)
                     queue.push(neighbor)
-                    
+        
         return component
 
-    # Go through each node in the graph
+    # Main loop: find all components
     for node in graph.nodes():
         if node not in visited:
-            component = bfs_component(node)
-            components.add(frozenset(component)) 
+            component = get_weakly_connected_component(node)
+            components.add(frozenset(component))
 
     return components
