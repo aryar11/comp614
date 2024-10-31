@@ -28,7 +28,7 @@ def file_to_graph(filename):
     """
     graph = comp614_module4.DiGraph()
     curr_node = None
-    with open(filename, 'r') as file:
+    with open(filename, 'r', encoding='utf-8') as file:
         for line in file:
             if line.startswith('\t'):
                 graph.add_edge(curr_node, line.strip())
@@ -46,38 +46,38 @@ class Queue:
         """
         Constructs a new empty queue.
         """
-        self.queue = deque()
+        self._queue = deque()
 
     def __len__(self):
         """
         Returns an integer representing the number of items in the queue.
         """
-        return len(self.queue)
+        return len(self._queue)
 
     def __str__(self):
         """
         Returns a string representation of the queue.
         """
-        return "Queue: " + " -> ".join(map(str, self.queue))
+        return "Queue: " + " -> ".join(map(str, self._queue))
 
     def push(self, item):
         """
         Adds the given item to the queue.
         """
-        self.queue.append(item)
+        self._queue.append(item)
 
     def pop(self):
         """
         Removes and returns the least recently added item from the queue.
         Assumes that there is at least one element in the queue.
         """
-        return self.queue.popleft() if self.queue else None
+        return self._queue.popleft() if self._queue else None
 
     def clear(self):
         """
         Removes all items from the queue.
         """
-        self.queue.clear()
+        self._queue.clear()
 
 
 def bfs(graph, start_node):
@@ -113,4 +113,35 @@ def connected_components(graph):
     in the form  of a set of components, where each component is represented as a
     frozen set of nodes. Should not mutate the input graph.
     """
-    return set([])
+    visited = set()  # Keeps track of visited nodes
+    components = set()  # Stores each component as a frozenset
+
+    # Helper function to perform BFS and gather nodes in the current component
+    def bfs_component(start_node):
+        queue = Queue()
+        queue.push(start_node)
+        component = set()  # To store nodes in the current component
+        visited.add(start_node)
+        
+        while len(queue) > 0:
+            node = queue.pop()
+            component.add(node)
+            
+            # Get all neighbors in both directions for weak connectivity
+            neigh = graph.get_neighbors(node)
+            nodes = {n for n in graph.nodes() if node in graph.get_neighbors(n)}
+            neighbors = neigh | nodes
+            for neighbor in neighbors:
+                if neighbor not in visited:
+                    visited.add(neighbor)
+                    queue.push(neighbor)
+                    
+        return component
+
+    # Go through each node in the graph
+    for node in graph.nodes():
+        if node not in visited:
+            component = bfs_component(node)
+            components.add(frozenset(component)) 
+
+    return components
