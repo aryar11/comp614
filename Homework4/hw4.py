@@ -113,36 +113,30 @@ def connected_components(graph):
     in the form  of a set of components, where each component is represented as a
     frozen set of nodes. Should not mutate the input graph.
     """
-    visited = set()  # Keeps track of visited nodes
-    components = set()  # Stores each component as a frozenset
+    visited = set()  # Track visited nodes
+    components = set()  # Store each component as a frozenset
 
-    def get_weakly_connected_component(start_node):
-        # Use BFS on the simulated undirected graph
-        queue = Queue()
-        queue.push(start_node)
-        component = set([start_node])
-        visited.add(start_node)
-
-        while len(queue) > 0:
-            node = queue.pop()
-
-            # Combine outbound and inbound neighbors to simulate undirected behavior
-            neighbors = graph.get_neighbors(node)
-            reverse_neighbors = {n for n in graph.nodes() if node in graph.get_neighbors(n)}
-            all_neighbors = neighbors | reverse_neighbors
-
-            for neighbor in all_neighbors:
-                if neighbor not in visited:
-                    visited.add(neighbor)
-                    component.add(neighbor)
-                    queue.push(neighbor)
-        
-        return component
-
-    # Main loop: find all components
     for node in graph.nodes():
         if node not in visited:
-            component = get_weakly_connected_component(node)
+            # BFS starting from unvisited node
+            dist, _ = bfs(graph_as_undirected(graph), node)
+
+            component = {n for n, d in dist.items() if d != float("inf")}
+
+            visited.update(component)
+
             components.add(frozenset(component))
 
     return components
+
+def graph_as_undirected(graph):
+    """
+    Helper function that returns a new graph that is equivalent to the given graph but undirected.
+    """
+    undirected_graph = graph.copy()
+
+    for node in graph.nodes():
+        for neighbor in graph.get_neighbors(node):
+            undirected_graph.add_edge(neighbor, node)
+
+    return undirected_graph
