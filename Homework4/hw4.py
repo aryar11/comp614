@@ -140,3 +140,47 @@ def graph_as_undirected(graph):
             undirected_graph.add_edge(neighbor, node)
 
     return undirected_graph
+
+
+def find_path(parent, start, end):
+    path = []
+    current = end
+    while current is not None:
+        path.append(current)
+        current = parent[current]
+    path.reverse()
+    return path if path[0] == start else []
+
+# Build graph from file
+graph = file_to_graph("wikipedia_articles.txt")
+
+# Run BFS from both "rice university" and "university of florida"
+dist_rice_to_uf, parent_rice = bfs(graph, "rice university")
+dist_uf_to_rice, parent_uf = bfs(graph, "university of florida")
+
+# Get distances and paths
+distance_rice_to_uf = dist_rice_to_uf.get("university of florida", float("inf"))
+distance_uf_to_rice = dist_uf_to_rice.get("rice university", float("inf"))
+
+path_rice_to_uf = find_path(parent_rice, "rice university", "university of florida")
+path_uf_to_rice = find_path(parent_uf, "university of florida", "rice university")
+
+# Print results and analyze
+print("Distance from Rice University to University of Florida:", distance_rice_to_uf)
+print("Path from Rice University to University of Florida:", " -> ".join(path_rice_to_uf))
+print("Distance from University of Florida to Rice University:", distance_uf_to_rice)
+print("Path from University of Florida to Rice University:", " -> ".join(path_uf_to_rice))
+
+# Find weakly connected components in the graph
+components = connected_components(graph)
+num_components = len(components)
+print("QUESTION 2 \n\n")
+# Print results
+print("Number of weakly connected components:", num_components)
+
+# Analysis questions
+print("\nQuestions:")
+print("How many connected components are there?")
+print("Are these the results that you expected? Why or why not?")
+print("Why do you think you got these results?")
+print("How do you think things would have differed if you had computed the strongly connected components instead?")
