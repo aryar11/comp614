@@ -7,14 +7,46 @@ import math
 import numpy
 import re
 import string
-
+import comp614_module5
 
 def get_title_and_text(filename):
     """
-    Given a the name of an XML file, extracts and returns the strings contained 
-    between the <title></title> and <text></text> tags.
+    Given the name of an XML file, extracts and returns the strings contained 
+    between the <title></title> and <text></text> tags, supporting multi-line content.
     """
-    return "", ""
+    title = ""
+    text = ""
+    in_text_tag = False  
+
+    with open(filename, 'r', encoding='utf-8') as file:
+        for line in file:
+            # Title
+            if "<title>" in line and "</title>" in line:
+                start = line.find("<title>") + len("<title>")
+                end = line.find("</title>")
+                title = line[start:end]
+
+            # Text
+            if in_text_tag:
+                if "</text>" in line:
+                    end = line.find("</text>")
+                    text += line[:end]
+                    in_text_tag = False
+                else:
+                    text += line
+
+            elif "<text" in line:
+                start = line.find('>') + 1
+                if "</text>" in line:
+                    end = line.find("</text>")
+                    text += line[start:end]
+                    in_text_tag = False
+                else:
+                    text += line[start:]
+                    in_text_tag = True
+
+    text = text.replace('\n', ' ')
+    return title.strip(), text
 
 
 def get_words(text):
@@ -104,4 +136,4 @@ def run():
 
 # Leave the following line commented when you submit your code to OwlTest/CanvasTest,
 # but uncomment it to perform the analysis for the discussion questions.
-run()
+#run()
