@@ -28,7 +28,7 @@ ALL_FILES = ['elizabeth_i.xml', 'detroit_tigers.xml', 'korean_war.xml', 'fascism
              'netherlands.xml', 'dwight_d_eisenhower.xml', 'afghanistan.xml', 'reincarnation.xml',
              'history_of_painting.xml', 'abolitionism.xml', 'jennifer_lopez.xml', 'art.xml',
              'university_of_southern_california.xml', 'michael_phelps.xml', 'slovenia.xml',
-             'orson_welles.xml', 'cancer.xml', 'frank_sinatra.xml', 'racism.xml', 'nuclear_power.xml',
+             'orson_welles.xml', 'cancer.xml', 'frank_sinatra.xml', 'nuclear_power.xml',
              'noam_chomsky.xml', 'houston_astros.xml', 'alex_puccio.xml', 'india.xml', 'romania.xml',
              'britney_spears.xml', 'the_beatles.xml', 'diana_princess_of_wales.xml', 'bill_clinton.xml',
              'greece.xml', 'spain.xml', 'russia.xml', 'john_cho.xml', 'pope_pius_xii.xml',

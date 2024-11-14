@@ -3,8 +3,9 @@ COMP 614
 Homework 5: Bag of Words
 """
 
+from collections import defaultdict
 import math
-import numpy
+import numpy as np
 import re
 import string
 import comp614_module5
@@ -55,7 +56,27 @@ def get_words(text):
     is contained within {{}}, [[]], [], <>, etc.) and punctuation and returns a 
     list of the remaining words, each of which should be converted to lowercase.
     """
-    return []
+   # Define the regular expressions for each of the patterns to filter out
+    patterns = [
+        r'\{\{.*?\}\}',             
+        r'\{\|.*?\|\}',              
+        r'\[\[.*?\]\]',              
+        r'\[.*?\]',                    
+        r'<.*?>',                        
+        r'&lt;.*?&gt;',                  
+        r'File:'                         
+    ]
+
+    combined_pattern = '|'.join(patterns)
+
+    text = re.sub(combined_pattern, ' ', text)
+
+    punctuation_to_remove = "[" + string.punctuation + "](?![st]\\s)"
+    text = re.sub(punctuation_to_remove, ' ', text)
+    text = text.lower()
+
+    words = text.split()
+    return words
 
 
 def count_words(words):
@@ -63,7 +84,10 @@ def count_words(words):
     Given a list of words, returns the total number of words as well as a 
     dictionary mapping each unique word to its frequency of occurrence.
     """
-    return 0, {}
+    count = defaultdict(int)
+    for word in words:
+        count[word] += 1
+    return len(words), count
 
 
 def count_all_words(filenames):
@@ -75,7 +99,24 @@ def count_all_words(filenames):
     mapping each unique word --- including all words found across all files --- 
     to its total frequency of occurrence across all of the input files.
     """
-    return [], {}, {}
+    all_titles = []
+    title_to_counter = {}
+    total_counts = defaultdict(int)
+
+    for filename in filenames:
+        title, text = get_title_and_text(filename)
+        all_titles.append(title)
+
+        words = get_words(text)
+        total_words, word_count = count_words(words)
+
+        normalized_counter = {word: count / total_words for word, count in word_count.items()}
+        title_to_counter[title] = normalized_counter
+
+        for word, count in word_count.items():
+            total_counts[word] += count
+
+    return all_titles, title_to_counter, dict(total_counts)
 
 
 def encode_word_counts(all_titles, title_to_counter, total_counts, num_words):
@@ -87,7 +128,20 @@ def encode_word_counts(all_titles, title_to_counter, total_counts, num_words):
     common overall word in the i-th article (i.e., the article corresponding to 
     the i-th title in titles).
     """
-    return numpy.matrix([[]])
+    sorted_words = sorted(total_counts.items(), key=lambda tup: (-1 * tup[1], tup[0]))
+    top_words = [word for word, _ in sorted_words[:num_words]]
+    
+    # Init an empty matrix
+    matrix = np.zeros((len(all_titles), len(top_words)))
+    
+    for idx, title in enumerate(all_titles):
+        word_counts = title_to_counter.get(title, {})
+        
+        for jdx, word in enumerate(top_words):
+            # get the relative frequency of the j-th most common word in the i-th article
+            matrix[idx, jdx] = word_counts.get(word, 0.0)
+    
+    return matrix
 
 
 def nearest_neighbors(matrix, all_titles, title, num_nbrs):
@@ -97,7 +151,26 @@ def nearest_neighbors(matrix, all_titles, title, num_nbrs):
     encoded in the matrix, and the desired number of neighbors to be found, finds 
     and returns the closest neighbors to the article with the given title.
     """
-    return []
+    if title not in all_titles:
+        raise ValueError("The provided title is not in the list of all titles.")
+
+    target_index = all_titles.index(title)
+
+    target_vector = matrix[target_index]
+
+    # distance between the target vector and all other vectors
+    distances = []
+    for idx, vector in enumerate(matrix):
+        if idx != target_index:  
+            distance = np.linalg.norm(target_vector - vector)
+            distances.append((all_titles[idx], distance))
+
+    # Sort the distances in ascending order
+    distances.sort(key=lambda x: x[1])
+    num_nbrs = min(num_nbrs, len(all_titles) - 1)
+    nearest_titles = [title for title, _ in distances[:num_nbrs]]
+
+    return nearest_titles
 
 
 def run():
@@ -137,3 +210,25 @@ def run():
 # Leave the following line commented when you submit your code to OwlTest/CanvasTest,
 # but uncomment it to perform the analysis for the discussion questions.
 #run()
+
+
+# 1) Find the top 30 words in "rice_university.xml". 
+# Provide the words and their (raw/absolute, not normalized) counts in the form
+# of a list of tuples of (word, count), sorted in descending order.
+def get_top_words_from_file(filename):
+    """
+    given a filename, this function prints the top 30 words by raw count in 
+    descending order as a list of tuples (word, count).
+    """
+    _, text = get_title_and_text(filename)
+    
+    _, word_count_dict = count_words(get_words(text))
+    
+    sorted_words = sorted(word_count_dict.items(), key=lambda item: -item[1])
+    top_words = sorted_words[:30]
+    
+    print("Top 30 words and their counts:")
+    for word, count in top_words:
+        print(f"{word}: {count}")
+
+#get_top_words_from_file("wikipedia_articles/television.xml")
